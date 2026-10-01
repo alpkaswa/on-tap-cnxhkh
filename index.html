@@ -41,6 +41,7 @@
     .progress-bg { height: 8px; background: #cbd5e1; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
     .progress-fill { height: 100%; background: var(--primary-light); width: 0%; transition: width 0.3s; }
 
+    .question-list { display: block; }
     .question-card { margin-bottom: 20px; }
     .question-title { font-size: 1.08rem; font-weight: 600; margin-bottom: 15px; line-height: 1.55; color: #1e293b; }
 
@@ -86,15 +87,14 @@
     .sort-card.incorrect { border-color: var(--danger); background: var(--danger-bg); color: #7f1d1d; }
     .sort-card:disabled { cursor: default; }
     @media (max-width: 700px) {
-      body { padding: 8px; }
-      .container { padding: 14px; border-radius: 8px; }
+      body { min-height: 100vh; overflow-x: hidden; overflow-y: auto; padding: 8px; }
+      .container { display: block; height: auto; max-height: none; min-height: 0; overflow: visible; padding: 14px; border-radius: 8px; }
       .sort-column-grid { grid-template-columns: 1fr; gap: 8px; }
       .sort-layout { gap: 9px; }
       .sort-source, .sort-column { padding: 9px; }
       .sort-dropzone { min-height: 56px; gap: 6px; padding: 7px; }
       .sort-card { padding: 7px 9px; font-size: 0.86rem; }
       .match-row { padding: 9px; }
-      .mobile-match-select { min-height: 44px; font-size: 16px; }
       .option-item { padding: 10px 11px; font-size: 0.92rem; }
       .tf-table th, .tf-table td { padding: 8px; font-size: 0.88rem; }
       .tf-btn { padding: 6px 10px; }
@@ -697,8 +697,8 @@ function createQuiz(containerId, questions) {
   let currentActivePos = 0;
   let userAns = {};
   let checkedState = {};
-  let selectedSortItem = null;
-  let selectedMatchAnswer = null;
+  let selectedSortItem = {};
+  let selectedMatchAnswer = {};
 
   function isCorrect(qIdx) {
     if (!checkedState[qIdx]) return null;
@@ -731,39 +731,90 @@ function createQuiz(containerId, questions) {
       if (st === true) c++;
       else if (st === false) w++;
     });
+    const currentIndex = activeIndices[currentActivePos];
+    container.querySelector('.q-count').innerText =
+      `Câu: ${currentActivePos + 1} / ${activeIndices.length} (Bài gốc: Câu ${currentIndex + 1})`;
+    container.querySelector('.progress-fill').style.width =
+      `${questions.length ? ((c + w) / questions.length) * 100 : 0}%`;
     container.querySelector('.stat-correct').innerText = c;
     container.querySelector('.stat-wrong').innerText = w;
   }
 
-  function retryCurrent() {
-    const idx = activeIndices[currentActivePos];
+  function retryQuestion(idx) {
     delete userAns[idx];
     delete checkedState[idx];
-    selectedSortItem = null;
-    selectedMatchAnswer = null;
+    delete selectedSortItem[idx];
+    delete selectedMatchAnswer[idx];
     updateCounters();
-    render();
+    const questionCard = container.querySelector(`[data-question-index="${idx}"]`);
+    if (questionCard) renderQuestion(idx, questionCard);
   }
 
-  function render() {
-    const idx = activeIndices[currentActivePos];
+  function retryCurrent() {
+    retryQuestion(activeIndices[currentActivePos]);
+  }
+
+  function enableTouchDrag(card, questionCard, onDrop) {
+    card.style.touchAction = 'none';
+    card.addEventListener('pointerdown', (startEvent) => {
+      if (startEvent.pointerType === 'mouse' || startEvent.button !== 0) return;
+      const startX = startEvent.clientX;
+      const startY = startEvent.clientY;
+      const pointerId = startEvent.pointerId;
+      let moved = false;
+
+      const clearHighlights = () => {
+        questionCard.querySelectorAll('.sort-dropzone.drag-over').forEach(zone => zone.classList.remove('drag-over'));
+      };
+      const cleanup = () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        document.removeEventListener('pointercancel', onCancel);
+        clearHighlights();
+      };
+      const onMove = (event) => {
+        if (event.pointerId !== pointerId) return;
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) < 8) return;
+        moved = true;
+        event.preventDefault();
+        clearHighlights();
+        const target = document.elementFromPoint(event.clientX, event.clientY);
+        const zone = target?.closest('.sort-dropzone');
+        if (zone && questionCard.contains(zone)) zone.classList.add('drag-over');
+      };
+      const onUp = (event) => {
+        if (event.pointerId !== pointerId) return;
+        cleanup();
+        if (!moved) return;
+        event.preventDefault();
+        const target = document.elementFromPoint(event.clientX, event.clientY);
+        const zone = target?.closest('.sort-dropzone');
+        if (zone && questionCard.contains(zone)) onDrop(zone);
+      };
+      const onCancel = (event) => {
+        if (event.pointerId === pointerId) cleanup();
+      };
+
+      document.addEventListener('pointermove', onMove, { passive: false });
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onCancel);
+    });
+  }
+
+  function renderQuestion(idx, questionCard) {
     const q = questions[idx];
-    const useCompactControls = window.matchMedia('(max-width: 700px)').matches || navigator.maxTouchPoints > 0;
+    const useCompactControls = false;
 
-    container.querySelector('.q-count').innerText =
-      `Câu: ${currentActivePos + 1} / ${activeIndices.length} (Bài gốc: Câu ${idx + 1})`;
-    container.querySelector('.progress-fill').style.width =
-      `${((currentActivePos + 1) / activeIndices.length) * 100}%`;
-    container.querySelector('.q-text').innerText = q.q;
+    questionCard.querySelector('.q-text').innerText = q.q;
 
-    const content = container.querySelector('.q-content');
+    const content = questionCard.querySelector('.q-content');
     content.innerHTML = '';
-    const fb = container.querySelector('.feedback-box');
+    const fb = questionCard.querySelector('.feedback-box');
     fb.style.display = 'none';
     fb.className = 'feedback-box';
 
     const isChecked = checkedState[idx] || false;
-    const checkBtn = container.querySelector('.btn-check');
+    const checkBtn = questionCard.querySelector('.btn-check');
 
     if (q.type === 'single') {
       checkBtn.style.display = 'none';
@@ -785,7 +836,7 @@ function createQuiz(containerId, questions) {
           userAns[idx] = i;
           checkedState[idx] = true;
           updateCounters();
-          render();
+          renderQuestion(idx, questionCard);
         };
         wrap.appendChild(d);
       });
@@ -824,7 +875,7 @@ function createQuiz(containerId, questions) {
           const p = userAns[idx].indexOf(i);
           if (p > -1) userAns[idx].splice(p, 1);
           else userAns[idx].push(i);
-          render();
+          renderQuestion(idx, questionCard);
         };
         wrap.appendChild(d);
       });
@@ -864,8 +915,8 @@ function createQuiz(containerId, questions) {
           else if (val === false) fC += ' incorrect-val';
         }
         tr.innerHTML = `<td>${item.text}</td><td style="text-align:center;"><div class="tf-btn-group">
-          <button class="${tC}" ${isChecked ? 'disabled' : ''} onclick="window['setTF_${containerId}'](${i},true)">Đúng</button>
-          <button class="${fC}" ${isChecked ? 'disabled' : ''} onclick="window['setTF_${containerId}'](${i},false)">Sai</button>
+          <button class="${tC}" ${isChecked ? 'disabled' : ''} onclick="window['q_${containerId}'].setTF(${idx},${i},true)">Đúng</button>
+          <button class="${fC}" ${isChecked ? 'disabled' : ''} onclick="window['q_${containerId}'].setTF(${idx},${i},false)">Sai</button>
         </div></td>`;
         tbody.appendChild(tr);
       });
@@ -966,17 +1017,18 @@ function createQuiz(containerId, questions) {
           }
         });
         userAns[idx][itemIndex] = answer;
-        selectedMatchAnswer = null;
-        render();
+        selectedMatchAnswer[idx] = null;
+        renderQuestion(idx, questionCard);
       };
       const returnAnswer = (answer) => {
         Object.keys(userAns[idx]).forEach((assignedIndex) => {
           if (userAns[idx][assignedIndex] === answer) delete userAns[idx][assignedIndex];
         });
-        selectedMatchAnswer = null;
-        render();
+        selectedMatchAnswer[idx] = null;
+        renderQuestion(idx, questionCard);
       };
       const configureMatchDrop = (zone, itemIndex) => {
+        zone.dataset.matchTarget = itemIndex === null ? 'source' : String(itemIndex);
         zone.ondragover = (event) => {
           if (isChecked) return;
           event.preventDefault();
@@ -1000,8 +1052,8 @@ function createQuiz(containerId, questions) {
         card.innerText = answer;
         card.draggable = !isChecked;
         card.disabled = isChecked;
-        card.setAttribute('aria-pressed', String(selectedMatchAnswer === answer));
-        if (!isChecked && selectedMatchAnswer === answer) card.classList.add('selected');
+        card.setAttribute('aria-pressed', String(selectedMatchAnswer[idx] === answer));
+        if (!isChecked && selectedMatchAnswer[idx] === answer) card.classList.add('selected');
         if (isChecked && itemIndex !== null) {
           if (answer === q.items[itemIndex].ans) card.classList.add('correct');
           else card.classList.add('incorrect');
@@ -1010,18 +1062,22 @@ function createQuiz(containerId, questions) {
           event.dataTransfer.setData('text/plain', String(q.pool.indexOf(answer)));
           event.dataTransfer.effectAllowed = 'move';
         };
+        enableTouchDrag(card, questionCard, (zone) => {
+          if (zone.dataset.matchTarget === 'source') returnAnswer(answer);
+          else if (zone.dataset.matchTarget !== undefined) assignAnswer(Number(zone.dataset.matchTarget), answer);
+        });
         card.onclick = (event) => {
           event.stopPropagation();
           if (isChecked) return;
-          selectedMatchAnswer = selectedMatchAnswer === answer ? null : answer;
-          render();
+          selectedMatchAnswer[idx] = selectedMatchAnswer[idx] === answer ? null : answer;
+          renderQuestion(idx, questionCard);
         };
         return card;
       };
 
       configureMatchDrop(sourceZone, null);
       source.onclick = () => {
-        if (!isChecked && selectedMatchAnswer !== null) returnAnswer(selectedMatchAnswer);
+        if (!isChecked && selectedMatchAnswer[idx] != null) returnAnswer(selectedMatchAnswer[idx]);
       };
       q.pool.forEach((answer) => {
         if (!Object.values(userAns[idx]).includes(answer)) {
@@ -1043,10 +1099,10 @@ function createQuiz(containerId, questions) {
         zone.setAttribute('aria-label', `Thả đáp án cho phát biểu ${itemIndex + 1}`);
         configureMatchDrop(zone, itemIndex);
         zone.onclick = () => {
-          if (!isChecked && selectedMatchAnswer !== null) assignAnswer(itemIndex, selectedMatchAnswer);
+          if (!isChecked && selectedMatchAnswer[idx] != null) assignAnswer(itemIndex, selectedMatchAnswer[idx]);
         };
         row.onclick = () => {
-          if (!isChecked && selectedMatchAnswer !== null) assignAnswer(itemIndex, selectedMatchAnswer);
+          if (!isChecked && selectedMatchAnswer[idx] != null) assignAnswer(itemIndex, selectedMatchAnswer[idx]);
         };
         row.appendChild(label);
         const answer = userAns[idx][itemIndex];
@@ -1195,8 +1251,8 @@ function createQuiz(containerId, questions) {
       const source = document.createElement('section');
       source.className = 'sort-source';
       source.onclick = () => {
-        if (isChecked || selectedSortItem === null) return;
-        placeItem(selectedSortItem, '');
+        if (isChecked || selectedSortItem[idx] == null) return;
+        placeItem(selectedSortItem[idx], '');
       };
       const sourceHeading = document.createElement('h3');
       sourceHeading.className = 'sort-heading';
@@ -1210,10 +1266,11 @@ function createQuiz(containerId, questions) {
       const placeItem = (itemIndex, categoryId) => {
         if (categoryId) userAns[idx][itemIndex] = categoryId;
         else delete userAns[idx][itemIndex];
-        selectedSortItem = null;
-        render();
+        selectedSortItem[idx] = null;
+        renderQuestion(idx, questionCard);
       };
       const configureDropZone = (zone, categoryId) => {
+        zone.dataset.categoryId = categoryId;
         zone.ondragover = (event) => {
           if (isChecked) return;
           event.preventDefault();
@@ -1229,8 +1286,8 @@ function createQuiz(containerId, questions) {
           }
         };
         zone.onclick = () => {
-          if (isChecked || selectedSortItem === null) return;
-          placeItem(selectedSortItem, categoryId);
+          if (isChecked || selectedSortItem[idx] == null) return;
+          placeItem(selectedSortItem[idx], categoryId);
         };
       };
       const createSortCard = (item, itemIndex) => {
@@ -1240,8 +1297,8 @@ function createQuiz(containerId, questions) {
         card.innerText = item.label;
         card.draggable = !isChecked;
         card.disabled = isChecked;
-        card.setAttribute('aria-pressed', String(selectedSortItem === itemIndex));
-        if (selectedSortItem === itemIndex && !isChecked) card.classList.add('selected');
+        card.setAttribute('aria-pressed', String(selectedSortItem[idx] === itemIndex));
+        if (selectedSortItem[idx] === itemIndex && !isChecked) card.classList.add('selected');
         if (isChecked) {
           if (userAns[idx][itemIndex] === item.ans) card.classList.add('correct');
           else card.classList.add('incorrect');
@@ -1250,11 +1307,12 @@ function createQuiz(containerId, questions) {
           event.dataTransfer.setData('text/plain', String(itemIndex));
           event.dataTransfer.effectAllowed = 'move';
         };
+        enableTouchDrag(card, questionCard, (zone) => placeItem(itemIndex, zone.dataset.categoryId || ''));
         card.onclick = (event) => {
           event.stopPropagation();
           if (isChecked) return;
-          selectedSortItem = selectedSortItem === itemIndex ? null : itemIndex;
-          render();
+          selectedSortItem[idx] = selectedSortItem[idx] === itemIndex ? null : itemIndex;
+          renderQuestion(idx, questionCard);
         };
         return card;
       };
@@ -1271,8 +1329,8 @@ function createQuiz(containerId, questions) {
         const column = document.createElement('section');
         column.className = 'sort-column';
         column.onclick = () => {
-          if (isChecked || selectedSortItem === null) return;
-          placeItem(selectedSortItem, category.id);
+          if (isChecked || selectedSortItem[idx] == null) return;
+          placeItem(selectedSortItem[idx], category.id);
         };
         const heading = document.createElement('h3');
         heading.className = 'sort-heading';
@@ -1305,22 +1363,45 @@ function createQuiz(containerId, questions) {
       }
     }
 
-    container.querySelector('.btn-prev').disabled = currentActivePos === 0;
-    const last = currentActivePos === activeIndices.length - 1;
-    container.querySelector('.btn-next').style.display = last ? 'none' : 'inline-block';
-    container.querySelector('.btn-submit').style.display = last ? 'inline-block' : 'none';
+    const retryButton = fb.querySelector('.btn-mini-retry');
+    if (retryButton) retryButton.onclick = () => retryQuestion(idx);
+  }
+
+  function render() {
+    const list = container.querySelector('.question-list');
+    list.innerHTML = '';
+    const idx = activeIndices[currentActivePos];
+    const questionCard = document.createElement('article');
+    questionCard.className = 'question-card';
+    questionCard.dataset.questionIndex = idx;
+    questionCard.innerHTML = '<div class="question-title q-text"></div><div class="q-content"></div><div class="nav-btns"><button class="btn btn-prev" type="button">Câu trước</button><button class="btn btn-check" type="button" style="display:none;">Kiểm tra đáp án</button><button class="btn btn-next" type="button">Câu sau</button><button class="btn btn-submit" type="button" style="display:none;">Nộp bài</button></div><div class="feedback-box"></div>';
+    questionCard.querySelector('.btn-prev').disabled = currentActivePos === 0;
+    questionCard.querySelector('.btn-prev').onclick = () => changeQ(-1);
+    questionCard.querySelector('.btn-next').style.display = currentActivePos === activeIndices.length - 1 ? 'none' : 'inline-block';
+    questionCard.querySelector('.btn-next').onclick = () => changeQ(1);
+    questionCard.querySelector('.btn-check').onclick = () => checkQuestion(idx);
+    questionCard.querySelector('.btn-submit').style.display = currentActivePos === activeIndices.length - 1 ? 'inline-block' : 'none';
+    questionCard.querySelector('.btn-submit').onclick = submitQuiz;
+    list.appendChild(questionCard);
+    renderQuestion(idx, questionCard);
     updateCounters();
   }
 
-  function setTF(subIdx, val) {
-    const idx = activeIndices[currentActivePos];
-    if (!userAns[idx]) userAns[idx] = {};
-    userAns[idx][subIdx] = val;
+  function changeQ(dir) {
+    currentActivePos = Math.max(0, Math.min(activeIndices.length - 1, currentActivePos + dir));
+    selectedSortItem[activeIndices[currentActivePos]] = null;
+    selectedMatchAnswer[activeIndices[currentActivePos]] = null;
     render();
   }
 
-  function checkManual() {
-    const idx = activeIndices[currentActivePos];
+  function setTF(idx, subIdx, val) {
+    if (!userAns[idx]) userAns[idx] = {};
+    userAns[idx][subIdx] = val;
+    const questionCard = container.querySelector(`[data-question-index="${idx}"]`);
+    if (questionCard) renderQuestion(idx, questionCard);
+  }
+
+  function checkQuestion(idx) {
     const q = questions[idx];
     if (q.type === 'multi') {
       if (!userAns[idx] || userAns[idx].length === 0) { alert("Vui lòng chọn đáp án trước khi kiểm tra!"); return; }
@@ -1329,18 +1410,19 @@ function createQuiz(containerId, questions) {
     } else if (q.type === 'match') {
       if (Object.keys(userAns[idx] || {}).length < q.items.length) { alert("Vui lòng ghép đáp án vào tất cả các phát biểu!"); return; }
     } else if (q.type === 'sort') {
-      if (Object.keys(userAns[idx] || {}).length < q.items.length) { alert("Vui lòng kéo tất cả các yếu tố vào một cột!"); return; }
+      if (Object.keys(userAns[idx] || {}).length < q.items.length) { alert("Vui lòng chọn điều kiện cho tất cả các yếu tố!"); return; }
     }
-    selectedSortItem = null;
+    selectedSortItem[idx] = null;
+    selectedMatchAnswer[idx] = null;
     checkedState[idx] = true;
     updateCounters();
-    render();
+    const questionCard = container.querySelector(`[data-question-index="${idx}"]`);
+    if (questionCard) renderQuestion(idx, questionCard);
   }
-
-  function changeQ(dir) { selectedSortItem = null; selectedMatchAnswer = null; currentActivePos += dir; render(); }
 
   function submitQuiz() {
     activeIndices.forEach(i => { checkedState[i] = true; });
+    updateCounters();
     let c = 0, w = 0;
     questions.forEach((_, i) => { if (isCorrect(i) === true) c++; else w++; });
     container.querySelector('.quiz-box').style.display = 'none';
@@ -1368,8 +1450,8 @@ function createQuiz(containerId, questions) {
 
   function resetQuiz() {
     userAns = {}; checkedState = {};
-    selectedSortItem = null;
-    selectedMatchAnswer = null;
+    selectedSortItem = {};
+    selectedMatchAnswer = {};
     activeIndices = questions.map((_, i) => i);
     currentActivePos = 0;
     container.querySelector('.quiz-box').style.display = 'block';
@@ -1379,11 +1461,10 @@ function createQuiz(containerId, questions) {
   }
 
   window[`retry_${containerId}`] = retryCurrent;
-  window[`setTF_${containerId}`] = setTF;
 
   container.innerHTML = `
     <div class="status-bar">
-      <span class="q-count">Câu: 1 / ${questions.length}</span>
+      <span class="q-count">Câu: 1 / ${questions.length} (Bài gốc: Câu 1)</span>
       <div class="counter-badge">
         <span class="badge-correct">Đúng: <span class="stat-correct">0</span></span>
         <span class="badge-wrong">Sai: <span class="stat-wrong">0</span></span>
@@ -1391,17 +1472,7 @@ function createQuiz(containerId, questions) {
     </div>
     <div class="progress-bg"><div class="progress-fill"></div></div>
     <div class="quiz-box">
-      <div class="question-card">
-        <div class="question-title q-text"></div>
-        <div class="q-content"></div>
-        <div class="feedback-box"></div>
-      </div>
-      <div class="nav-btns">
-        <button class="btn btn-prev" onclick="window['q_${containerId}'].changeQ(-1)">Câu trước</button>
-        <button class="btn btn-check" onclick="window['q_${containerId}'].checkManual()" style="display:none;">Kiểm tra đáp án</button>
-        <button class="btn btn-next" onclick="window['q_${containerId}'].changeQ(1)">Câu sau</button>
-        <button class="btn btn-submit" onclick="window['q_${containerId}'].submitQuiz()" style="display:none;">Nộp bài</button>
-      </div>
+      <div class="question-list"></div>
     </div>
     <div class="result-box" style="display:none;">
       <h2>KẾT QUẢ BÀI LÀM</h2>
@@ -1418,11 +1489,10 @@ function createQuiz(containerId, questions) {
     </div>
   `;
 
-  container.querySelector('.btn-check').onclick = checkManual;
-
-  const api = { changeQ, checkManual, submitQuiz, retryWrong, resetQuiz, render, updateCounters };
+  const api = { changeQ, checkQuestion, retryQuestion, setTF, submitQuiz, retryWrong, resetQuiz, render, updateCounters };
   window[`q_${containerId}`] = api;
-  render();
+  if (container.classList.contains('active')) render();
+  else updateCounters();
   return api;
 }
 
@@ -1441,6 +1511,7 @@ function switchTab(tab, evt) {
   document.querySelectorAll('.quiz-container').forEach(c => c.classList.remove('active'));
   if (evt) evt.target.classList.add('active');
   document.getElementById('quiz-' + tab).classList.add('active');
+  window[`q_quiz-${tab}`].render();
 }
 </script>
 </body>
