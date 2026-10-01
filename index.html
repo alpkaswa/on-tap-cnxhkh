@@ -94,6 +94,7 @@
       .sort-dropzone { min-height: 56px; gap: 6px; padding: 7px; }
       .sort-card { padding: 7px 9px; font-size: 0.86rem; }
       .match-row { padding: 9px; }
+      .mobile-match-select { min-height: 44px; font-size: 16px; }
       .option-item { padding: 10px 11px; font-size: 0.92rem; }
       .tf-table th, .tf-table td { padding: 8px; font-size: 0.88rem; }
       .tf-btn { padding: 6px 10px; }
@@ -747,6 +748,7 @@ function createQuiz(containerId, questions) {
   function render() {
     const idx = activeIndices[currentActivePos];
     const q = questions[idx];
+    const useCompactControls = window.matchMedia('(max-width: 700px)').matches || navigator.maxTouchPoints > 0;
 
     container.querySelector('.q-count').innerText =
       `Câu: ${currentActivePos + 1} / ${activeIndices.length} (Bài gốc: Câu ${idx + 1})`;
@@ -874,6 +876,65 @@ function createQuiz(containerId, questions) {
         else {
           fb.classList.add('incorrect-fb');
           fb.innerHTML = `❌ Chưa chính xác. Hãy xem các ô màu xanh (đáp án đúng) và màu đỏ (bạn chọn sai).
+            <div class="fb-actions">
+              <button class="btn-mini btn-mini-retry" onclick="window['retry_${containerId}']()">🔄 Làm lại câu này</button>
+              <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
+            </div>`;
+        }
+      }
+    }
+    else if (q.type === 'match' && q.q.includes('Kéo thả') && useCompactControls) {
+      checkBtn.style.display = isChecked ? 'none' : 'inline-block';
+      if (!userAns[idx]) userAns[idx] = {};
+      const wrap = document.createElement('div');
+      wrap.className = 'match-list';
+      q.items.forEach((item, itemIndex) => {
+        const row = document.createElement('div');
+        row.className = 'match-row';
+        const label = document.createElement('div');
+        label.className = 'match-label';
+        label.innerText = item.label;
+        const select = document.createElement('select');
+        select.className = 'match-select mobile-match-select';
+        select.setAttribute('aria-label', `Chọn đáp án cho phát biểu ${itemIndex + 1}`);
+        select.disabled = isChecked;
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.innerText = '-- Chọn đáp án --';
+        select.appendChild(placeholder);
+        q.pool.forEach((answer) => {
+          const option = document.createElement('option');
+          option.value = answer;
+          option.innerText = answer;
+          if (userAns[idx][itemIndex] === answer) option.selected = true;
+          select.appendChild(option);
+        });
+        select.onchange = (event) => {
+          if (event.target.value) userAns[idx][itemIndex] = event.target.value;
+          else delete userAns[idx][itemIndex];
+        };
+        const answer = userAns[idx][itemIndex];
+        if (isChecked) {
+          if (answer === item.ans) select.classList.add('correct-match');
+          else select.classList.add('incorrect-match');
+        }
+        row.appendChild(label);
+        row.appendChild(select);
+        if (isChecked && answer !== item.ans) {
+          const correctAnswer = document.createElement('div');
+          correctAnswer.className = 'match-correct-answer';
+          correctAnswer.innerText = `Đáp án đúng: ${item.ans}`;
+          row.appendChild(correctAnswer);
+        }
+        wrap.appendChild(row);
+      });
+      content.appendChild(wrap);
+      if (isChecked) {
+        fb.style.display = 'block';
+        if (isCorrect(idx)) { fb.classList.add('correct-fb'); fb.innerHTML = '✅ Ghép đáp án chính xác!'; }
+        else {
+          fb.classList.add('incorrect-fb');
+          fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng được hiển thị dưới từng phát biểu.
             <div class="fb-actions">
               <button class="btn-mini btn-mini-retry" onclick="window['retry_${containerId}']()">🔄 Làm lại câu này</button>
               <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
@@ -1060,6 +1121,64 @@ function createQuiz(containerId, questions) {
         else {
           fb.classList.add('incorrect-fb');
           fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng là các từ hiển thị trên nền xanh.
+            <div class="fb-actions">
+              <button class="btn-mini btn-mini-retry" onclick="window['retry_${containerId}']()">🔄 Làm lại câu này</button>
+              <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
+            </div>`;
+        }
+      }
+    }
+    else if (q.type === 'sort' && useCompactControls) {
+      checkBtn.style.display = isChecked ? 'none' : 'inline-block';
+      if (!userAns[idx]) userAns[idx] = {};
+      const wrap = document.createElement('div');
+      wrap.className = 'match-list';
+      q.items.forEach((item, itemIndex) => {
+        const row = document.createElement('div');
+        row.className = 'match-row';
+        const label = document.createElement('div');
+        label.className = 'match-label';
+        label.innerText = item.label;
+        const select = document.createElement('select');
+        select.className = 'match-select mobile-match-select';
+        select.setAttribute('aria-label', `Chọn cột cho yếu tố ${itemIndex + 1}`);
+        select.disabled = isChecked;
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.innerText = '-- Chọn điều kiện --';
+        select.appendChild(placeholder);
+        q.categories.forEach((category) => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.innerText = category.label;
+          if (userAns[idx][itemIndex] === category.id) option.selected = true;
+          select.appendChild(option);
+        });
+        select.onchange = (event) => {
+          if (event.target.value) userAns[idx][itemIndex] = event.target.value;
+          else delete userAns[idx][itemIndex];
+        };
+        if (isChecked) {
+          if (userAns[idx][itemIndex] === item.ans) select.classList.add('correct-match');
+          else select.classList.add('incorrect-match');
+        }
+        row.appendChild(label);
+        row.appendChild(select);
+        if (isChecked && userAns[idx][itemIndex] !== item.ans) {
+          const correctAnswer = document.createElement('div');
+          correctAnswer.className = 'match-correct-answer';
+          correctAnswer.innerText = `Đáp án đúng: ${q.categories.find(category => category.id === item.ans)?.label || item.ans}`;
+          row.appendChild(correctAnswer);
+        }
+        wrap.appendChild(row);
+      });
+      content.appendChild(wrap);
+      if (isChecked) {
+        fb.style.display = 'block';
+        if (isCorrect(idx)) { fb.classList.add('correct-fb'); fb.innerHTML = '✅ Phân loại chính xác!'; }
+        else {
+          fb.classList.add('incorrect-fb');
+          fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng được hiển thị dưới từng yếu tố.
             <div class="fb-actions">
               <button class="btn-mini btn-mini-retry" onclick="window['retry_${containerId}']()">🔄 Làm lại câu này</button>
               <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
