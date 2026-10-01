@@ -803,6 +803,7 @@ function createQuiz(containerId, questions) {
 
   function renderQuestion(idx, questionCard) {
     const q = questions[idx];
+    const useTouchDrag = window.matchMedia('(max-width: 700px)').matches || navigator.maxTouchPoints > 0;
     const useCompactControls = false;
 
     questionCard.querySelector('.q-text').innerText = q.q;
@@ -1050,7 +1051,7 @@ function createQuiz(containerId, questions) {
         card.type = 'button';
         card.className = 'sort-card';
         card.innerText = answer;
-        card.draggable = !isChecked;
+        card.draggable = !isChecked && !useTouchDrag;
         card.disabled = isChecked;
         card.setAttribute('aria-pressed', String(selectedMatchAnswer[idx] === answer));
         if (!isChecked && selectedMatchAnswer[idx] === answer) card.classList.add('selected');
@@ -1295,7 +1296,7 @@ function createQuiz(containerId, questions) {
         card.type = 'button';
         card.className = 'sort-card';
         card.innerText = item.label;
-        card.draggable = !isChecked;
+        card.draggable = !isChecked && !useTouchDrag;
         card.disabled = isChecked;
         card.setAttribute('aria-pressed', String(selectedSortItem[idx] === itemIndex));
         if (selectedSortItem[idx] === itemIndex && !isChecked) card.classList.add('selected');
