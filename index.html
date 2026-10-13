@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ôn Tập CNXHKH - Bài 1 đến Bài 6</title>
+<title>Ôn Tập CNXHKH - Bài 1 đến Bài 6 (có Edit)</title>
 <style>
     :root {
         --primary: #1e40af;
@@ -13,6 +13,8 @@
         --danger: #dc2626;
         --danger-bg: #fee2e2;
         --warning: #d97706;
+        --edit: #7c3aed;
+        --edit-bg: #f3e8ff;
         --bg: #f1f5f9;
         --card-bg: #ffffff;
         --text: #0f172a;
@@ -21,30 +23,31 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 18px; display: flex; justify-content: center; min-height: 100vh; }
     .container { width: 100%; max-width: 980px; min-width: 0; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.08); padding: 24px; }
-
-    header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 18px; margin-bottom: 20px; }
-    header h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 6px; font-weight: 700; letter-spacing: -0.01em; }
+    header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 18px; margin-bottom: 20px; position: relative; }
+    header h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 6px; font-weight: 700; }
     header p { color: #475569; font-size: 0.95rem; }
-
+    .edit-toggle { position: absolute; top: 0; right: 0; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--edit); background: white; color: var(--edit); font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .edit-toggle:hover { background: var(--edit-bg); }
+    .edit-toggle.active { background: var(--edit); color: white; }
+    .edit-toggle.active:hover { background: #6d28d9; }
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
     .tab-btn { padding: 10px 18px; border: 2px solid var(--border); background: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: #475569; transition: all 0.2s; }
     .tab-btn:hover { border-color: var(--primary-light); color: var(--primary); background: #f8fafc; }
     .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(30,64,175,0.3); }
     .quiz-container { display: none; }
     .quiz-container.active { display: block; }
-
     .status-bar { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 12px 18px; border-radius: 10px; font-weight: 700; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; font-size: 0.95rem; }
     .counter-badge { display: flex; gap: 18px; font-size: 0.95rem; }
     .badge-correct { color: var(--success); }
     .badge-wrong { color: var(--danger); }
-
     .progress-bg { height: 10px; background: #cbd5e1; border-radius: 5px; overflow: hidden; margin-bottom: 22px; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); width: 0%; transition: width 0.35s ease; border-radius: 5px; }
-
     .question-list { display: block; }
-    .question-card { margin-bottom: 20px; }
-    .question-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; line-height: 1.6; color: #1e293b; }
-
+    .question-card { margin-bottom: 20px; position: relative; }
+    .question-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; line-height: 1.6; color: #1e293b; padding-right: 40px; }
+    .q-edit-btn { position: absolute; top: 0; right: 0; background: var(--edit-bg); border: 2px solid var(--edit); color: var(--edit); border-radius: 8px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: none; align-items: center; gap: 4px; transition: all 0.15s; }
+    .q-edit-btn:hover { background: var(--edit); color: white; }
+    body.edit-mode .q-edit-btn { display: inline-flex; }
     .options-list { display: flex; flex-direction: column; gap: 10px; }
     .option-item { padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.97rem; display: flex; align-items: center; gap: 10px; line-height: 1.5; background: white; }
     .option-item:hover:not(.locked) { background-color: #f1f5f9; border-color: var(--primary-light); transform: translateX(2px); }
@@ -52,7 +55,6 @@
     .option-item.correct { background-color: var(--success-bg) !important; border-color: var(--success) !important; color: #14532d; font-weight: 700; }
     .option-item.incorrect { background-color: var(--danger-bg) !important; border-color: var(--danger) !important; color: #7f1d1d; }
     .option-item.locked { cursor: default; }
-
     .tf-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 12px; border-radius: 10px; overflow: hidden; }
     .tf-table th, .tf-table td { border: 1px solid var(--border); padding: 12px; text-align: left; font-size: 0.95rem; overflow-wrap: anywhere; }
     .tf-table th { background: #f1f5f9; font-weight: 700; color: #334155; }
@@ -64,7 +66,6 @@
     .tf-btn.correct-val { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
     .tf-btn.incorrect-val { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
     .tf-btn:disabled { cursor: default; opacity: 0.95; }
-
     .match-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; min-width: 0; }
     .match-row { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; }
     .match-label { font-weight: 500; font-size: 0.95rem; line-height: 1.55; color: #1e293b; }
@@ -75,7 +76,6 @@
     .match-select.correct-match { border-color: var(--success); background-color: var(--success-bg); font-weight: 700; color: #14532d; }
     .match-select.incorrect-match { border-color: var(--danger); background-color: var(--danger-bg); color: #7f1d1d; }
     .match-correct-answer { margin-top: 6px; color: #14532d; font-size: 0.9rem; font-weight: 700; padding: 6px 10px; background: var(--success-bg); border-radius: 6px; display: inline-block; }
-
     @media (max-width: 700px) {
       body { padding: 10px; }
       .container { padding: 16px; border-radius: 12px; }
@@ -84,6 +84,7 @@
       .tf-btn { padding: 7px 12px; }
       .btn { padding: 10px 14px; }
       .match-select { padding: 10px; font-size: 0.92rem; }
+      .edit-toggle { position: static; margin-top: 10px; }
     }
     @media (max-width: 420px) {
       body { padding: 8px; }
@@ -97,7 +98,6 @@
       .match-select { font-size: 0.88rem; padding: 9px; }
       .btn { padding: 9px 11px; font-size: 0.85rem; }
     }
-
     .feedback-box { margin-top: 16px; padding: 14px 18px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; display: none; line-height: 1.6; }
     .feedback-box.correct-fb { background-color: var(--success-bg); color: #14532d; border: 2px solid var(--success); }
     .feedback-box.incorrect-fb { background-color: var(--danger-bg); color: #7f1d1d; border: 2px solid var(--danger); }
@@ -105,7 +105,6 @@
     .btn-mini { padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.15s; }
     .btn-mini-retry { background: var(--warning); color: white; }
     .btn-mini-retry:hover { background: #b45309; transform: translateY(-1px); }
-
     .nav-btns { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
     .btn { padding: 11px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; }
     .btn-prev { background: #64748b; color: white; }
@@ -119,19 +118,63 @@
     .btn-retry { background: var(--warning); color: white; }
     .btn-retry:hover:not(:disabled) { background: #b45309; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
     .result-box { text-align: center; padding: 26px; }
-    .score { font-size: 2.6rem; font-weight: 800; color: var(--primary); margin: 12px 0; letter-spacing: -0.02em; }
+    .score { font-size: 2.6rem; font-weight: 800; color: var(--primary); margin: 12px 0; }
     .result-details { display: flex; justify-content: center; gap: 26px; margin: 18px 0; font-weight: 700; font-size: 1.05rem; flex-wrap: wrap; }
     .result-box h2 { color: #1e293b; font-size: 1.3rem; letter-spacing: 0.02em; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: none; justify-content: center; align-items: flex-start; z-index: 999; padding: 20px; overflow-y: auto; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 16px; max-width: 800px; width: 100%; box-shadow: 0 20px 60px rgba(15,23,42,0.3); max-height: 92vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 18px 22px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--edit-bg); border-radius: 16px 16px 0 0; }
+    .modal-header h3 { color: var(--edit); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .modal-close { background: white; border: 2px solid var(--edit); color: var(--edit); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .modal-close:hover { background: var(--edit); color: white; }
+    .modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 14px 22px; border-top: 2px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; background: #f8fafc; border-radius: 0 0 16px 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; color: #334155; }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; background: white; color: var(--text); transition: border-color 0.15s; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--edit); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+    .form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .edit-opt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
+    .edit-opt-row .form-input { flex: 1; }
+    .edit-opt-row input[type="radio"], .edit-opt-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--edit); cursor: pointer; flex-shrink: 0; }
+    .edit-opt-row .opt-letter { font-weight: 700; color: var(--edit); min-width: 22px; font-size: 0.9rem; }
+    .edit-tf-row, .edit-match-row { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+    .edit-tf-row .tf-stmt { margin-bottom: 8px; }
+    .edit-tf-row .tf-ans-row { display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 0.9rem; }
+    .edit-tf-row .tf-ans-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; font-weight: 700; color: #334155; }
+    .edit-tf-row .tf-ans-row input[type="radio"] { width: 18px; height: 18px; accent-color: var(--edit); }
+    .edit-match-row .mrow-top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+    .edit-match-row .mrow-top .form-textarea { flex: 1; min-height: 50px; }
+    .edit-match-row .mrow-bot { display: flex; gap: 10px; align-items: center; }
+    .edit-match-row .mrow-bot label { font-weight: 700; font-size: 0.85rem; color: #475569; margin: 0; flex-shrink: 0; }
+    .edit-match-row .mrow-bot .form-select { flex: 1; }
+    .add-row-btn { background: white; border: 2px dashed var(--edit); color: var(--edit); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.15s; width: 100%; margin-top: 6px; }
+    .add-row-btn:hover { background: var(--edit-bg); }
+    .remove-row-btn { background: var(--danger-bg); border: none; color: var(--danger); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1rem; flex-shrink: 0; transition: all 0.15s; }
+    .remove-row-btn:hover { background: var(--danger); color: white; }
+    .btn-save { background: var(--edit); color: white; }
+    .btn-save:hover { background: #6d28d9; }
+    .btn-reset { background: #dc2626; color: white; }
+    .btn-reset:hover { background: #b91c1c; }
+    .btn-cancel { background: #64748b; color: white; }
+    .btn-cancel:hover { background: #475569; }
+    .edit-hint { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.88rem; color: #78350f; line-height: 1.5; }
+    .edit-hint strong { color: #92400e; }
+    .saved-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--success); color: white; padding: 12px 24px; border-radius: 40px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 10px 30px rgba(22,163,74,0.4); transition: transform 0.3s ease; z-index: 2000; display: flex; align-items: center; gap: 8px; }
+    .saved-toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>📘 ÔN TẬP TRẮC NGHIỆM CHỦ NGHĨA XÃ HỘI KHOA HỌC</h1>
+        <h1>📘 ÔN TẬP TRẮC NGHIỆM CNXHKH by Hoang Minh Nghia k23 </h1>
         <p><b>Trọn bộ 6 bài</b> — Làm từng câu, kiểm tra ngay, làm lại câu sai</p>
+        <button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">
+            ✏️ <span>Bật chế độ Sửa</span>
+        </button>
     </header>
 
     <div class="tabs">
@@ -151,11 +194,28 @@
     <div id="quiz-b6" class="quiz-container"></div>
 </div>
 
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Sửa câu hỏi <span id="editLessonLabel" style="opacity:0.7;font-weight:500;"></span></h3>
+            <button class="modal-close" onclick="closeEditModal()">✕</button>
+        </div>
+        <div class="modal-body" id="editModalBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" onclick="closeEditModal()">Hủy</button>
+            <button class="btn btn-save" onclick="saveEdit()">💾 Lưu câu hỏi</button>
+        </div>
+    </div>
+</div>
+
+<div class="saved-toast" id="savedToast">✅ Đã lưu thành công</div>
+
 <script>
 /* ============================================================
-   BÀI 1
+   DEFAULT DATA
    ============================================================ */
-const bai1 = [
+const DEFAULT_DATA = {
+bai1: [
   { type:"single", q:"Câu 1: Những nhà tư tưởng tiêu biểu của chủ nghĩa xã hội không tưởng phê phán đầu thế kỷ XIX là ai?", opts:["A. Grắccơ Babớp, Xanh Ximông, Sáclơ Phuriê","B. Xanh Ximông, Sáclơ Phuriê, Rôbớt Ôoen","C. Xanh Ximông, Giăng Mêliê, Rôbớt Ôoen","D. Xanh Ximông, Sáclơ Phuriê, G. Mably"], ans:1 },
   { type:"single", q:"Câu 2: Tác phẩm nào đánh dấu sự ra đời của chủ nghĩa xã hội khoa học?", opts:["A. Góp phần phê phán triết học pháp quyền của Hêghen – Lời nói đầu","B. Bộ Tư bản","C. Tình cảnh giai cấp công nhân ở Anh","D. Tuyên ngôn của Đảng Cộng sản"], ans:3 },
   { type:"single", q:"Câu 3: Đối tượng nghiên cứu của chủ nghĩa xã hội khoa học là gì?", opts:["A. Là những quy luật và tính quy luật chính trị – xã hội của quá trình phát sinh, hình thành và phát triển của hình thái kinh tế – xã hội cộng sản chủ nghĩa.","B. Là những quy luật hình thành, phát triển và hoàn thiện của các hình thái kinh tế – xã hội.","C. Là những quy luật kinh tế.","D. Là những quy luật văn hoá – xã hội."], ans:0 },
@@ -241,12 +301,9 @@ const bai1 = [
   { type:"single", q:"Câu 42: Hãy chỉ ra một trong những đặc trưng cơ bản của chủ nghĩa xã hội theo quan điểm của chủ nghĩa Mác – Lênin:", opts:["A. Chủ nghĩa xã hội có nền kinh tế phát triển cao.","B. Chủ nghĩa xã hội có nhà nước chủ yếu thực hiện chức năng chuyên chính vô sản.","C. Chủ nghĩa xã hội phát triển phương thức sản xuất tiên tiến.","D. Chủ nghĩa xã hội có nền kinh tế phát triển cao dựa trên lực lượng sản xuất hiện đại và chế độ công hữu về tư liệu sản xuất chủ yếu."], ans:3 },
   { type:"single", q:"Câu 43: Tổ chức nào sau đây là đội tiên phong của giai cấp công nhân Việt Nam?", opts:["A. Đảng Cộng sản Việt Nam.","B. Nhà nước Cộng hòa xã hội chủ nghĩa Việt Nam.","C. Mặt trận Tổ quốc Việt Nam.","D. Hội Liên hiệp Thanh niên Việt Nam."], ans:0 },
   { type:"multi", q:"Câu 44: Những điều kiện khách quan quy định sứ mệnh lịch sử của giai cấp công nhân bao gồm: (Chọn 2 đáp án đúng nhất)", opts:["A. Địa vị kinh tế – xã hội.","B. Do sự phát triển của lực lượng sản xuất hiện đại.","C. Đặc điểm chính trị – xã hội.","D. Giai cấp có lực lượng đông đảo."], ans:[0,2] }
-];
+],
 
-/* ============================================================
-   BÀI 2
-   ============================================================ */
-const bai2 = [
+bai2: [
   { type:"single", q:"Câu 1: Theo C.Mác và Ph.Ăngghen thì giai đoạn đầu của hình thái kinh tế - xã hội cộng sản chủ nghĩa là gì?", opts:["A. Chủ nghĩa xã hội","B. Thời kỳ quá độ.","C. Cộng sản chủ nghĩa","D. Chủ nghĩa cộng sản."], ans:0 },
   { type:"single", q:"Câu 2: Câu “Cần phải có thời kỳ quá độ khá lâu dài từ chủ nghĩa tư bản lên chủ nghĩa xã hội” là của ai?", opts:["A. Lênin","B. C.Mác","C. Heghen","D. Ăngghen"], ans:0 },
   { type:"single", q:"Câu 3: Chủ nghĩa xã hội có mấy đặc trưng cơ bản?", opts:["A. 6","B. 5","C. 8","D. 7"], ans:0 },
@@ -327,12 +384,9 @@ const bai2 = [
   { type:"single", q:"Câu 40: Vận dụng những kiến thức đã học hãy chỉ ra luận điểm không chính xác:", opts:["A. Chủ nghĩa xã hội và chủ nghĩa tư bản khác nhau về chất cần có một thời kỳ lịch sử nhất định để chuyển đổi","B. Thời kỳ quá độ là cần thiết để xây dựng cơ sở vật chất kỹ thuật cho chủ nghĩa xã hội","C. Công cuộc xây dựng chủ nghĩa xã hội là một công việc mới mẻ khó khăn và phức tạp phải có thời gian để giai cấp công nhân từng bước làm quen với những công việc đó","D. Tất cả các quan hệ xã hội của chủ nghĩa xã hội tự nảy sinh trong lòng chủ nghĩa tư bản"], ans:3 },
   { type:"multi", q:"Câu 41: Những đặc điểm nổi bật trong thời kỳ quá độ lên chủ nghĩa xã hội gồm: (Chọn 2 đáp án)", opts:["A. Tồn tại nhiều thành phần kinh tế khác nhau","B. Sự tồn tại song song của các yếu tố cũ và yếu tố mới","C. Không còn mâu thuẫn xã hội nào","D. Xã hội hoàn toàn không còn giai cấp"], ans:[0,1] },
   { type:"single", q:"Câu 42: So sánh sự khác nhau giữa giai đoạn thấp và giai đoạn cao của hình thái kinh tế - xã hội cộng sản chủ nghĩa?", opts:["A. Giai đoạn thấp thực hiện phân phối theo nhu cầu, giai đoạn cao thực hiện phân phối theo lao động","B. Giai đoạn thấp thực hiện phân phối theo lao động, giai đoạn cao thực hiện phân phối theo nhu cầu","C. Giai đoạn thấp không có sự phân chia giai cấp","D. Giai đoạn thấp sử dụng pháp quyền tư sản"], ans:1 }
-];
+],
 
-/* ============================================================
-   BÀI 3
-   ============================================================ */
-const bai3 = [
+bai3: [
   { type:"single", q:"Câu 1: Bản chất kinh tế của nền dân chủ xã hội chủ nghĩa là:", opts:["A. Thực hiện chế độ phân phối “Làm theo năng lực, hưởng theo nhu cầu”","B. Thực hiện chế độ tư hữu về công cụ sản xuất chủ yếu","C. Thực hiện chế độ công hữu về tư liệu sản xuất chủ yếu và thực hiện chế độ phân phối lợi ích theo kết quả lao động là chủ yếu","D. Thực hiện chế độ tư hữu về tư liệu sản xuất"], ans:2 },
   { type:"single", q:"Câu 2: Sự ra đời của nhà nước xã hội chủ nghĩa gắn với sự kiện nào?", opts:["A. Giai cấp công nhân xây dựng xong CNXH","B. Giai cấp công nhân lật đổ nhà nước của giai cấp bóc lột, giành được chính quyền","C. Giai cấp công nhân đấu tranh phản đối tình trạng áp bức bóc lột của giai cấp tư sản","D. Giai cấp công nhân đấu tranh đòi tăng lương, giảm giờ làm, cải thiện điều kiện lao động"], ans:1 },
   { type:"single", q:"Câu 3: Nhà nước pháp quyền XHCN quản lý mọi mặt của đời sống xã hội chủ yếu bằng gì?", opts:["A. Giáo dục.","B. Hiến pháp, pháp luật","C. Đường lối, chính sách","D. Tuyên truyền"], ans:1 },
@@ -415,12 +469,9 @@ const bai3 = [
   { type:"single", q:"Câu 42: Vận dụng những kiến thức đã học hãy chọn phương án đúng về mối quan hệ giữa dân chủ xã hội chủ nghĩa và Nhà nước xã hội chủ nghĩa:", opts:["A. Dân chủ xã hội chủ nghĩa là mục tiêu cho việc xây dựng và hoạt động của Nhà nước xã hội chủ nghĩa còn nhà nước xã hội chủ nghĩa là công cụ quan trọng cho việc thực thi quyền làm chủ của người dân","B. Dân chủ xã hội chủ nghĩa là cơ sở nền tảng cho việc xây dựng và hoạt động của Nhà nước xã hội chủ nghĩa còn nhà nước xã hội chủ nghĩa là công cụ quan trọng cho việc thực thi quyền làm chủ của người dân","C. Dân chủ xã hội chủ nghĩa là mục đích cho việc xây dựng và hoạt động của Nhà nước xã hội chủ nghĩa còn nhà nước xã hội chủ nghĩa là điều kiện cho sự ra đời của dân chủ xã hội chủ nghĩa","D. Dân chủ xã hội chủ nghĩa là mục đích cho việc xây dựng và hoạt động của Nhà nước xã hội chủ nghĩa còn nhà nước xã hội chủ nghĩa quyết định bản chất của dân chủ"], ans:1 },
   { type:"single", q:"Câu 43: Ai được coi là “dân” trong nền dân chủ chủ nô?", opts:["A. Nô lệ","B. Giai cấp chủ nô và các công dân tự do","C. Giai cấp nông nô","D. Không ai cả"], ans:1 },
   { type:"single", q:"Câu 44: Vận dụng những kiến thức đã học hãy cho biết việc thực hiện chế độ công hữu về tư liệu sản xuất chủ yếu và thực hiện chế độ phân phối lợi ích theo kết quả lao động là chủ yếu là bản chất kinh tế của nền dân chủ nào?", opts:["A. Nền dân chủ tư sản","B. Nền dân chủ chủ nô","C. Nền dân chủ nguyên thủy","D. Nền dân chủ xã hội chủ nghĩa"], ans:3 }
-];
+],
 
-/* ============================================================
-   BÀI 4
-   ============================================================ */
-const bai4 = [
+bai4: [
   { type:"single", q:"Câu 1: Trong thời kỳ quá độ lên chủ nghĩa xã hội, cơ cấu xã hội - giai cấp thường xuyên biến đổi theo mấy quy luật cơ bản?", opts:["A. 5","B. 3","C. 4","D. 2"], ans:1 },
   { type:"single", q:"Câu 2: Xét về mặt kinh tế, trong thời kỳ quá độ lên chủ nghĩa xã hội, cơ cấu xã hội – giai cấp biến đổi phức tạp, đa dạng, làm xuất hiện các tầng lớp mới là do:", opts:["A. Kinh tế chậm phát triển","B. Các giai cấp có nhiều tư liệu sản xuất quyết định","C. Tồn tại nhiều giai cấp, tầng lớp","D. Cơ cấu kinh tế đa dạng, phức tạp"], ans:3 },
   { type:"single", q:"Câu 3: V.I. Lênin đã xem liên minh giữa giai cấp, tầng lớp nào là một hình thức “liên minh đặc biệt” trong giai đoạn giành chính quyền và xây dựng chủ nghĩa xã hội?", opts:["A. Giai cấp công nhân với tầng lớp trí thức và doanh nhân","B. Giai cấp công nhân với giai cấp nông dân và các tầng lớp xã hội khác","C. Giai cấp công nhân với giai cấp nông dân và tầng lớp trí thức","D. Giai cấp công nhân với giai cấp nông dân và tầng lớp tiểu tư sản"], ans:1 },
@@ -512,12 +563,9 @@ const bai4 = [
     {text:"3) Nội dung văn hóa không liên quan đến nội dung của liên minh giai cấp, tầng lớp.", ans:false},
     {text:"4) Đổi mới hoạt động của Đảng, nhà nước, mặt trận Tổ quốc Việt Nam nhằm tăng cường khối liên minh giai cấp, tầng lớp ở Việt Nam.", ans:true}
   ]}
-];
+],
 
-/* ============================================================
-   BÀI 5
-   ============================================================ */
-const bai5 = [
+bai5: [
   { type:"single", q:"Câu 1: Hiểu theo nghĩa rộng, dân tộc là:", opts:["A. Bộ tộc","B. Tộc người","C. Thị tộc","D. Quốc gia"], ans:3 },
   { type:"single", q:"Câu 2: Thứ tự quá trình phát triển của dân tộc lần lượt trải qua các hình thức nào?", opts:["A. Thị tộc, bộ tộc, bộ lạc, dân tộc","B. Bộ tộc, thị tộc, bộ lạc, dân tộc","C. Thị tộc, bộ lạc, bộ tộc, dân tộc","D. Bộ lạc, bộ tộc, thị tộc, dân tộc"], ans:2 },
   { type:"single", q:"Câu 3: Đối với quốc gia và từng thành viên của dân tộc, yếu tố nào là thiêng liêng nhất mà nếu không có thì không có khái niệm tổ quốc, quốc gia:", opts:["A. Kinh tế","B. Lãnh thổ","C. Ngôn ngữ","D. Truyền thống văn hoá"], ans:1 },
@@ -636,12 +684,9 @@ const bai5 = [
     {text:"3) Tín ngưỡng có hệ thống giáo lý chặt chẽ.", ans:false},
     {text:"4) Nguồn gốc kinh tế - xã hội dẫn đến sự ra đời của tôn giáo.", ans:true}
   ]}
-];
+],
 
-/* ============================================================
-   BÀI 6
-   ============================================================ */
-const bai6 = [
+bai6: [
   { type:"multi", q:"Câu 1: Hai mối quan hệ cơ bản hình thành gia đình là: (Chọn 2 đáp án đúng nhất)", opts:["A. Quan hệ hôn nhân","B. Quan hệ quần tụ trong một không gian sinh tồn","C. Quan hệ huyết thống","D. Quan hệ kinh tế"], ans:[0,2] },
   { type:"single", q:"Câu 2: Vị trí của gia đình trong xã hội là:", opts:["A. Xương sống","B. Mạch máu","C. Bộ não","D. Tế bào"], ans:3 },
   { type:"single", q:"Câu 3: Tình yêu giữa nam và nữ trở thành quan hệ hôn nhân được thể hiện bằng:", opts:["A. Lễ đính hôn","B. Thủ tục pháp lý","C. Lễ cưới","D. Lời hứa giữa nam và nữ"], ans:1 },
@@ -688,13 +733,398 @@ const bai6 = [
     {label:"Đầu tư tài chính của gia đình cho giáo dục con cái tăng lên", ans:"chucnang"},
     {label:"Vai trò giáo dục của các chủ thể trong gia đình có xu hướng giảm", ans:"chucnang"}
   ] }
-];
+]
+};
 
 /* ============================================================
-   QUIZ ENGINE (đã đơn giản hóa: match/sort dùng dropdown)
+   LOAD / SAVE / EDIT STATE
    ============================================================ */
-function createQuiz(containerId, questions) {
+const STORAGE_KEY = 'cnxh_quiz_data_v1';
+let quizData;
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function loadQuizData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.bai1 && parsed.bai2 && parsed.bai3 && parsed.bai4 && parsed.bai5 && parsed.bai6) {
+        return parsed;
+      }
+    }
+  } catch (e) { console.warn('Không đọc được dữ liệu đã lưu, dùng mặc định.', e); }
+  return deepClone(DEFAULT_DATA);
+}
+
+function saveQuizData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(quizData));
+    showToast('💾 Đã lưu vào bộ nhớ trình duyệt');
+  } catch (e) {
+    alert('Không thể lưu! Có thể dung lượng localStorage đã đầy.');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('savedToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+quizData = loadQuizData();
+
+/* ============================================================
+   EDIT MODE + MODAL
+   ============================================================ */
+let editMode = false;
+let editingLessonId = null;
+let editingQuestionIndex = null;
+let editingDraft = null;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const btn = document.getElementById('editToggle');
+  btn.classList.toggle('active', editMode);
+  btn.innerHTML = editMode ? '✏️ <span>Đang bật Sửa (bấm để tắt)</span>' : '✏️ <span>Bật chế độ Sửa</span>';
+  const activeTab = document.querySelector('.quiz-container.active');
+  if (activeTab) {
+    const id = activeTab.id.replace('quiz-', '');
+    const api = window[`q_quiz-${id}`];
+    if (api) api.render();
+  }
+}
+
+function openEditModal(lessonId, qIndex) {
+  editingLessonId = lessonId;
+  editingQuestionIndex = qIndex;
+  editingDraft = deepClone(quizData[lessonId][qIndex]);
+  document.getElementById('editLessonLabel').textContent =
+    `— ${lessonId.toUpperCase()} — Câu ${qIndex + 1}`;
+  renderEditForm();
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  editingDraft = null;
+  editingLessonId = null;
+  editingQuestionIndex = null;
+}
+
+function renderEditForm() {
+  const body = document.getElementById('editModalBody');
+  const q = editingDraft;
+  let html = `<div class="edit-hint">
+    <strong>💡 Mẹo:</strong> Sửa trực tiếp nội dung bên dưới. Với câu trắc nghiệm 1 đáp án, tích vào ô tròn bên cạnh đáp án đúng. Với nhiều đáp án, tích vào ô vuông. Nhấn <strong>Lưu</strong> để cập nhật.
+  </div>`;
+
+  html += `<div class="form-group">
+    <label>📝 Nội dung câu hỏi:</label>
+    <textarea class="form-textarea" id="editQText">${escapeHtml(q.q)}</textarea>
+  </div>`;
+
+  if (q.type === 'single' || q.type === 'multi') {
+    const isMulti = q.type === 'multi';
+    html += `<div class="form-group">
+      <label>📋 Các lựa chọn (tích chọn đáp án ${isMulti ? 'ĐÚNG (có thể nhiều)' : 'ĐÚNG (duy nhất)'}):</label>
+      <div id="editOptsWrap">`;
+    q.opts.forEach((opt, i) => {
+      const checked = isMulti
+        ? (Array.isArray(q.ans) && q.ans.includes(i) ? 'checked' : '')
+        : (q.ans === i ? 'checked' : '');
+      html += `<div class="edit-opt-row" data-opt-index="${i}">
+        <span class="opt-letter">${String.fromCharCode(65+i)}.</span>
+        <input type="${isMulti ? 'checkbox' : 'radio'}" name="editCorrectOpt" value="${i}" ${checked}>
+        <input type="text" class="form-input" value="${escapeAttr(opt)}" data-opt-input="${i}">
+        <button class="remove-row-btn" type="button" onclick="removeOptionRow(this)">✕</button>
+      </div>`;
+    });
+    html += `</div>
+      <button class="add-row-btn" type="button" onclick="addOptionRow()">+ Thêm lựa chọn</button>
+    </div>`;
+  }
+  else if (q.type === 'tf') {
+    html += `<div class="form-group">
+      <label>📋 Các phát biểu (chọn Đúng / Sai cho mỗi phát biểu):</label>
+      <div id="editTfWrap">`;
+    q.items.forEach((item, i) => {
+      html += `<div class="edit-tf-row" data-tf-index="${i}">
+        <textarea class="form-textarea tf-stmt" data-tf-stmt="${i}">${escapeHtml(item.text)}</textarea>
+        <div class="tf-ans-row">
+          <span>Đáp án:</span>
+          <label><input type="radio" name="tfAns_${i}" value="true" ${item.ans === true ? 'checked' : ''}> Đúng</label>
+          <label><input type="radio" name="tfAns_${i}" value="false" ${item.ans === false ? 'checked' : ''}> Sai</label>
+          <button class="remove-row-btn" type="button" onclick="removeTfRow(this)">✕</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>
+      <button class="add-row-btn" type="button" onclick="addTfRow()">+ Thêm phát biểu</button>
+    </div>`;
+  }
+  else if (q.type === 'match') {
+    html += `<div class="form-group">
+      <label>📋 Các cặp ghép (điền nội dung và chọn đáp án đúng từ danh sách bên dưới):</label>
+      <div id="editMatchWrap">`;
+    q.items.forEach((item, i) => {
+      html += `<div class="edit-match-row" data-match-index="${i}">
+        <div class="mrow-top">
+          <textarea class="form-textarea" data-match-label="${i}">${escapeHtml(item.label)}</textarea>
+          <button class="remove-row-btn" type="button" onclick="removeMatchRow(this)">✕</button>
+        </div>
+        <div class="mrow-bot">
+          <label>Đáp án:</label>
+          <input type="text" class="form-input" data-match-ans="${i}" value="${escapeAttr(item.ans)}">
+        </div>
+      </div>`;
+    });
+    html += `</div>
+      <button class="add-row-btn" type="button" onclick="addMatchRow()">+ Thêm dòng</button>
+    </div>
+    <div class="form-group">
+      <label>📚 Pool (các đáp án có sẵn, mỗi dòng 1 đáp án):</label>
+      <textarea class="form-textarea" id="editMatchPool">${escapeHtml(q.pool.join('\n'))}</textarea>
+    </div>`;
+  }
+  else if (q.type === 'sort') {
+    html += `<div class="form-group">
+      <label>📋 Các yếu tố cần phân loại (điền nội dung và chọn nhóm đúng):</label>
+      <div id="editSortWrap">`;
+    q.items.forEach((item, i) => {
+      const catLabel = (q.categories.find(c => c.id === item.ans) || {}).label || '';
+      html += `<div class="edit-match-row" data-sort-index="${i}">
+        <div class="mrow-top">
+          <textarea class="form-textarea" data-sort-label="${i}">${escapeHtml(item.label)}</textarea>
+          <button class="remove-row-btn" type="button" onclick="removeSortRow(this)">✕</button>
+        </div>
+        <div class="mrow-bot">
+          <label>Thuộc nhóm:</label>
+          <input type="text" class="form-input" data-sort-cat-label="${i}" value="${escapeAttr(catLabel)}" placeholder="Tên nhóm...">
+        </div>
+      </div>`;
+    });
+    html += `</div>
+      <button class="add-row-btn" type="button" onclick="addSortRow()">+ Thêm dòng</button>
+    </div>
+    <div class="form-group">
+      <label>📚 Định nghĩa các nhóm (mỗi dòng: <code>mã_nhóm|Tên hiển thị</code>):</label>
+      <textarea class="form-textarea" id="editSortCats">${escapeHtml(q.categories.map(c => c.id + '|' + c.label).join('\n'))}</textarea>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escapeAttr(s) { return escapeHtml(s).replace(/'/g, '&#39;'); }
+
+function removeOptionRow(btn) {
+  btn.closest('.edit-opt-row').remove();
+  reletterOptions();
+}
+function addOptionRow() {
+  const wrap = document.getElementById('editOptsWrap');
+  const i = wrap.children.length;
+  const isMulti = editingDraft.type === 'multi';
+  const div = document.createElement('div');
+  div.className = 'edit-opt-row';
+  div.dataset.optIndex = i;
+  div.innerHTML = `
+    <span class="opt-letter">${String.fromCharCode(65+i)}.</span>
+    <input type="${isMulti ? 'checkbox' : 'radio'}" name="editCorrectOpt" value="${i}">
+    <input type="text" class="form-input" value="" data-opt-input="${i}" placeholder="Nhập lựa chọn mới...">
+    <button class="remove-row-btn" type="button" onclick="removeOptionRow(this)">✕</button>`;
+  wrap.appendChild(div);
+}
+function reletterOptions() {
+  const wrap = document.getElementById('editOptsWrap');
+  [...wrap.children].forEach((row, i) => {
+    row.dataset.optIndex = i;
+    row.querySelector('.opt-letter').textContent = String.fromCharCode(65+i) + '.';
+    const inp = row.querySelector('input[data-opt-input]');
+    if (inp) inp.dataset.optInput = i;
+    const check = row.querySelector('input[name="editCorrectOpt"]');
+    if (check) check.value = i;
+  });
+}
+function removeTfRow(btn) { btn.closest('.edit-tf-row').remove(); }
+function addTfRow() {
+  const wrap = document.getElementById('editTfWrap');
+  const i = wrap.children.length;
+  const div = document.createElement('div');
+  div.className = 'edit-tf-row';
+  div.dataset.tfIndex = i;
+  div.innerHTML = `
+    <textarea class="form-textarea tf-stmt" data-tf-stmt="${i}" placeholder="Nhập phát biểu mới..."></textarea>
+    <div class="tf-ans-row">
+      <span>Đáp án:</span>
+      <label><input type="radio" name="tfAns_${i}" value="true"> Đúng</label>
+      <label><input type="radio" name="tfAns_${i}" value="false"> Sai</label>
+      <button class="remove-row-btn" type="button" onclick="removeTfRow(this)">✕</button>
+    </div>`;
+  wrap.appendChild(div);
+}
+function removeMatchRow(btn) { btn.closest('.edit-match-row').remove(); }
+function addMatchRow() {
+  const wrap = document.getElementById('editMatchWrap');
+  const i = wrap.children.length;
+  const div = document.createElement('div');
+  div.className = 'edit-match-row';
+  div.dataset.matchIndex = i;
+  div.innerHTML = `
+    <div class="mrow-top">
+      <textarea class="form-textarea" data-match-label="${i}" placeholder="Nhập nội dung phát biểu..."></textarea>
+      <button class="remove-row-btn" type="button" onclick="removeMatchRow(this)">✕</button>
+    </div>
+    <div class="mrow-bot">
+      <label>Đáp án:</label>
+      <input type="text" class="form-input" data-match-ans="${i}" placeholder="Nhập đáp án đúng...">
+    </div>`;
+  wrap.appendChild(div);
+}
+function removeSortRow(btn) { btn.closest('.edit-match-row').remove(); }
+function addSortRow() {
+  const wrap = document.getElementById('editSortWrap');
+  const i = wrap.children.length;
+  const div = document.createElement('div');
+  div.className = 'edit-match-row';
+  div.dataset.sortIndex = i;
+  div.innerHTML = `
+    <div class="mrow-top">
+      <textarea class="form-textarea" data-sort-label="${i}" placeholder="Nhập nội dung yếu tố..."></textarea>
+      <button class="remove-row-btn" type="button" onclick="removeSortRow(this)">✕</button>
+    </div>
+    <div class="mrow-bot">
+      <label>Thuộc nhóm:</label>
+      <input type="text" class="form-input" data-sort-cat-label="${i}" placeholder="Tên nhóm...">
+    </div>`;
+  wrap.appendChild(div);
+}
+
+function saveEdit() {
+  try {
+    const q = editingDraft;
+    const newQText = document.getElementById('editQText').value.trim();
+    if (!newQText) { alert('Nội dung câu hỏi không được để trống!'); return; }
+    q.q = newQText;
+
+    if (q.type === 'single' || q.type === 'multi') {
+      const wrap = document.getElementById('editOptsWrap');
+      const opts = [];
+      const correctList = [];
+      [...wrap.children].forEach((row, i) => {
+        const inp = row.querySelector('input[data-opt-input]');
+        const text = inp.value.trim();
+        if (text) opts.push(text);
+        const check = row.querySelector('input[name="editCorrectOpt"]');
+        if (check && check.checked) correctList.push(i);
+      });
+      if (opts.length < 2) { alert('Cần ít nhất 2 lựa chọn!'); return; }
+      if (correctList.length === 0) { alert('Phải chọn ít nhất 1 đáp án đúng!'); return; }
+      q.opts = opts;
+      if (q.type === 'single') {
+        if (correctList.length !== 1) { alert('Câu 1 đáp án chỉ được chọn đúng 1 đáp án!'); return; }
+        q.ans = correctList[0];
+      } else {
+        q.ans = correctList;
+      }
+    }
+    else if (q.type === 'tf') {
+      const wrap = document.getElementById('editTfWrap');
+      const items = [];
+      let ok = true;
+      [...wrap.children].forEach((row, i) => {
+        const stmt = row.querySelector('.tf-stmt').value.trim();
+        const radios = row.querySelectorAll(`input[name="tfAns_${i}"]`);
+        let val = null;
+        radios.forEach(r => { if (r.checked) val = (r.value === 'true'); });
+        if (!stmt || val === null) { ok = false; return; }
+        items.push({ text: stmt, ans: val });
+      });
+      if (!ok || items.length === 0) { alert('Vui lòng điền đầy đủ phát biểu và chọn Đúng/Sai cho từng dòng!'); return; }
+      q.items = items;
+    }
+    else if (q.type === 'match') {
+      const wrap = document.getElementById('editMatchWrap');
+      const items = [];
+      let ok = true;
+      [...wrap.children].forEach((row, i) => {
+        const label = row.querySelector(`[data-match-label="${i}"]`).value.trim();
+        const ans = row.querySelector(`[data-match-ans="${i}"]`).value.trim();
+        if (!label || !ans) { ok = false; return; }
+        items.push({ label, ans });
+      });
+      if (!ok || items.length === 0) { alert('Vui lòng điền đầy đủ nội dung và đáp án cho từng dòng!'); return; }
+      q.items = items;
+      const poolText = document.getElementById('editMatchPool').value;
+      const pool = poolText.split('\n').map(s => s.trim()).filter(Boolean);
+      if (pool.length === 0) { alert('Pool không được để trống!'); return; }
+      q.pool = [...new Set(pool)];
+      for (const it of q.items) {
+        if (!q.pool.includes(it.ans)) {
+          if (confirm(`Đáp án "${it.ans}" chưa có trong pool. Tự động thêm vào pool?`)) {
+            q.pool.push(it.ans);
+          } else {
+            return;
+          }
+        }
+      }
+    }
+    else if (q.type === 'sort') {
+      const wrap = document.getElementById('editSortWrap');
+      const catsText = document.getElementById('editSortCats').value;
+      const cats = [];
+      catsText.split('\n').forEach(line => {
+        const t = line.trim();
+        if (!t) return;
+        const parts = t.split('|');
+        if (parts.length >= 2) {
+          cats.push({ id: parts[0].trim(), label: parts.slice(1).join('|').trim() });
+        } else {
+          cats.push({ id: t, label: t });
+        }
+      });
+      if (cats.length < 2) { alert('Cần ít nhất 2 nhóm!'); return; }
+      q.categories = cats;
+      const items = [];
+      let ok = true;
+      [...wrap.children].forEach((row, i) => {
+        const label = row.querySelector(`[data-sort-label="${i}"]`).value.trim();
+        const catLabel = row.querySelector(`[data-sort-cat-label="${i}"]`).value.trim();
+        if (!label || !catLabel) { ok = false; return; }
+        const found = cats.find(c => c.label.toLowerCase() === catLabel.toLowerCase() || c.id.toLowerCase() === catLabel.toLowerCase());
+        if (!found) { ok = false; alert(`Không tìm thấy nhóm "${catLabel}" trong định nghĩa nhóm!`); return; }
+        items.push({ label, ans: found.id });
+      });
+      if (!ok || items.length === 0) { alert('Vui lòng điền đầy đủ nội dung và nhóm cho từng dòng!'); return; }
+      q.items = items;
+    }
+
+    quizData[editingLessonId][editingQuestionIndex] = q;
+    saveQuizData();
+    closeEditModal();
+    const api = window[`q_quiz-${editingLessonId.replace('bai', 'b')}`];
+    if (api) api.render();
+    showToast('✅ Đã lưu câu hỏi!');
+  } catch (err) {
+    console.error(err);
+    alert('Lỗi khi lưu: ' + err.message);
+  }
+}
+
+/* ============================================================
+   QUIZ ENGINE
+   ============================================================ */
+function createQuiz(containerId, lessonId) {
   const container = document.getElementById(containerId);
+  const questions = quizData[lessonId];
   let activeIndices = questions.map((_, i) => i);
   let currentActivePos = 0;
   let userAns = {};
@@ -713,11 +1143,7 @@ function createQuiz(containerId, questions) {
       if (!userAns[qIdx] || Object.keys(userAns[qIdx]).length < q.items.length) return false;
       return q.items.every((it, i) => userAns[qIdx][i] === it.ans);
     }
-    if (q.type === 'match') {
-      if (!userAns[qIdx] || Object.keys(userAns[qIdx]).length < q.items.length) return false;
-      return q.items.every((it, i) => userAns[qIdx][i] === it.ans);
-    }
-    if (q.type === 'sort') {
+    if (q.type === 'match' || q.type === 'sort') {
       if (!userAns[qIdx] || Object.keys(userAns[qIdx]).length < q.items.length) return false;
       return q.items.every((it, i) => userAns[qIdx][i] === it.ans);
     }
@@ -763,7 +1189,6 @@ function createQuiz(containerId, questions) {
     const isChecked = checkedState[idx] || false;
     const checkBtn = questionCard.querySelector('.btn-check');
 
-    /* ---------- SINGLE ---------- */
     if (q.type === 'single') {
       checkBtn.style.display = 'none';
       const wrap = document.createElement('div');
@@ -802,7 +1227,6 @@ function createQuiz(containerId, questions) {
         }
       }
     }
-    /* ---------- MULTI ---------- */
     else if (q.type === 'multi') {
       checkBtn.style.display = isChecked ? 'none' : 'inline-block';
       const wrap = document.createElement('div');
@@ -844,7 +1268,6 @@ function createQuiz(containerId, questions) {
         }
       }
     }
-    /* ---------- TRUE / FALSE ---------- */
     else if (q.type === 'tf') {
       checkBtn.style.display = isChecked ? 'none' : 'inline-block';
       if (!userAns[idx]) userAns[idx] = {};
@@ -884,8 +1307,7 @@ function createQuiz(containerId, questions) {
         }
       }
     }
-    /* ---------- MATCH (dùng dropdown) ---------- */
-    else if (q.type === 'match') {
+    else if (q.type === 'match' || q.type === 'sort') {
       checkBtn.style.display = isChecked ? 'none' : 'inline-block';
       if (!userAns[idx]) userAns[idx] = {};
       const wrap = document.createElement('div');
@@ -893,117 +1315,52 @@ function createQuiz(containerId, questions) {
       q.items.forEach((item, i) => {
         const row = document.createElement('div');
         row.className = 'match-row';
-
         const lbl = document.createElement('div');
         lbl.className = 'match-label';
         lbl.innerText = item.label;
-
         const sel = document.createElement('select');
         sel.className = 'match-select';
         sel.disabled = isChecked;
-        sel.dataset.matchIdx = `${idx}|${i}`;
-
+        sel.dataset.qIdx = `${idx}|${i}`;
+        sel.dataset.qType = q.type;
         const def = document.createElement('option');
         def.value = '';
-        def.innerText = '-- Chọn đáp án --';
+        def.innerText = q.type === 'match' ? '-- Chọn đáp án --' : '-- Chọn nhóm --';
         sel.appendChild(def);
-
-        q.pool.forEach(p => {
+        const pool = q.type === 'match' ? q.pool : q.categories;
+        pool.forEach(p => {
           const o = document.createElement('option');
-          o.value = p;
-          o.innerText = p;
-          if (userAns[idx][i] === p) o.selected = true;
+          o.value = q.type === 'match' ? p : p.id;
+          o.innerText = q.type === 'match' ? p : p.label;
+          if (userAns[idx][i] === o.value) o.selected = true;
           sel.appendChild(o);
         });
-
         if (isChecked) {
           if (userAns[idx][i] === item.ans) sel.classList.add('correct-match');
           else sel.classList.add('incorrect-match');
         }
-
         row.appendChild(lbl);
         row.appendChild(sel);
-
         if (isChecked && userAns[idx][i] !== item.ans) {
           const ca = document.createElement('div');
           ca.className = 'match-correct-answer';
-          ca.innerText = `Đáp án đúng: ${item.ans}`;
+          if (q.type === 'match') {
+            ca.innerText = `Đáp án đúng: ${item.ans}`;
+          } else {
+            const catLabel = (q.categories.find(c => c.id === item.ans) || {}).label || item.ans;
+            ca.innerText = `Đáp án đúng: ${catLabel}`;
+          }
           row.appendChild(ca);
         }
         wrap.appendChild(row);
       });
       content.appendChild(wrap);
-
       if (isChecked) {
         fb.style.display = 'block';
-        if (isCorrect(idx)) { fb.classList.add('correct-fb'); fb.innerHTML = '✅ Ghép đáp án chính xác!'; }
+        if (isCorrect(idx)) { fb.classList.add('correct-fb'); fb.innerHTML = q.type === 'match' ? '✅ Ghép đáp án chính xác!' : '✅ Phân loại chính xác!'; }
         else {
           fb.classList.add('incorrect-fb');
-          fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng được hiển thị dưới từng phát biểu.
-            <div class="fb-actions">
-              <button class="btn-mini btn-mini-retry" data-retry="${idx}">🔄 Làm lại câu này</button>
-              <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
-            </div>`;
-        }
-      }
-    }
-    /* ---------- SORT (dùng dropdown) ---------- */
-    else if (q.type === 'sort') {
-      checkBtn.style.display = isChecked ? 'none' : 'inline-block';
-      if (!userAns[idx]) userAns[idx] = {};
-      const wrap = document.createElement('div');
-      wrap.className = 'match-list';
-      q.items.forEach((item, i) => {
-        const row = document.createElement('div');
-        row.className = 'match-row';
-
-        const lbl = document.createElement('div');
-        lbl.className = 'match-label';
-        lbl.innerText = item.label;
-
-        const sel = document.createElement('select');
-        sel.className = 'match-select';
-        sel.disabled = isChecked;
-        sel.dataset.sortIdx = `${idx}|${i}`;
-
-        const def = document.createElement('option');
-        def.value = '';
-        def.innerText = '-- Chọn nhóm --';
-        sel.appendChild(def);
-
-        q.categories.forEach(c => {
-          const o = document.createElement('option');
-          o.value = c.id;
-          o.innerText = c.label;
-          if (userAns[idx][i] === c.id) o.selected = true;
-          sel.appendChild(o);
-        });
-
-        if (isChecked) {
-          if (userAns[idx][i] === item.ans) sel.classList.add('correct-match');
-          else sel.classList.add('incorrect-match');
-        }
-
-        row.appendChild(lbl);
-        row.appendChild(sel);
-
-        if (isChecked && userAns[idx][i] !== item.ans) {
-          const ca = document.createElement('div');
-          ca.className = 'match-correct-answer';
-          const catLabel = (q.categories.find(c => c.id === item.ans) || {}).label || item.ans;
-          ca.innerText = `Đáp án đúng: ${catLabel}`;
-          row.appendChild(ca);
-        }
-        wrap.appendChild(row);
-      });
-      content.appendChild(wrap);
-
-      if (isChecked) {
-        fb.style.display = 'block';
-        if (isCorrect(idx)) { fb.classList.add('correct-fb'); fb.innerHTML = '✅ Phân loại chính xác!'; }
-        else {
-          fb.classList.add('incorrect-fb');
-          fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng được hiển thị dưới từng yếu tố.
+          fb.innerHTML = `❌ Chưa chính xác. Đáp án đúng được hiển thị dưới từng dòng.
             <div class="fb-actions">
               <button class="btn-mini btn-mini-retry" data-retry="${idx}">🔄 Làm lại câu này</button>
               <span style="color:#7f1d1d;font-weight:500;font-size:0.85rem;">hoặc bấm "Câu sau" để giữ nguyên và tiếp tục</span>
@@ -1012,7 +1369,6 @@ function createQuiz(containerId, questions) {
       }
     }
 
-    /* ---- Gắn sự kiện cho các nút đặc biệt (tránh inline onclick lỗi scope) ---- */
     content.querySelectorAll('[data-tf]').forEach(btn => {
       btn.onclick = () => {
         const [qi, si, v] = btn.dataset.tf.split('|');
@@ -1021,16 +1377,9 @@ function createQuiz(containerId, questions) {
         renderQuestion(parseInt(qi), questionCard);
       };
     });
-    content.querySelectorAll('[data-match-idx]').forEach(sel => {
+    content.querySelectorAll('[data-q-idx]').forEach(sel => {
       sel.onchange = (e) => {
-        const [qi, si] = sel.dataset.matchIdx.split('|');
-        if (e.target.value) userAns[qi][si] = e.target.value;
-        else delete userAns[qi][si];
-      };
-    });
-    content.querySelectorAll('[data-sort-idx]').forEach(sel => {
-      sel.onchange = (e) => {
-        const [qi, si] = sel.dataset.sortIdx.split('|');
+        const [qi, si] = sel.dataset.qIdx.split('|');
         if (e.target.value) userAns[qi][si] = e.target.value;
         else delete userAns[qi][si];
       };
@@ -1047,7 +1396,17 @@ function createQuiz(containerId, questions) {
     const questionCard = document.createElement('article');
     questionCard.className = 'question-card';
     questionCard.dataset.questionIndex = idx;
-    questionCard.innerHTML = '<div class="question-title q-text"></div><div class="q-content"></div><div class="nav-btns"><button class="btn btn-prev" type="button">Câu trước</button><button class="btn btn-check" type="button" style="display:none;">Kiểm tra đáp án</button><button class="btn btn-next" type="button">Câu sau</button><button class="btn btn-submit" type="button" style="display:none;">Nộp bài</button></div><div class="feedback-box"></div>';
+    questionCard.innerHTML = `
+      <div class="question-title q-text"></div>
+      <button class="q-edit-btn" title="Sửa câu hỏi này">✏️ Sửa</button>
+      <div class="q-content"></div>
+      <div class="nav-btns">
+        <button class="btn btn-prev" type="button">Câu trước</button>
+        <button class="btn btn-check" type="button" style="display:none;">Kiểm tra đáp án</button>
+        <button class="btn btn-next" type="button">Câu sau</button>
+        <button class="btn btn-submit" type="button" style="display:none;">Nộp bài</button>
+      </div>
+      <div class="feedback-box"></div>`;
     questionCard.querySelector('.btn-prev').disabled = currentActivePos === 0;
     questionCard.querySelector('.btn-prev').onclick = () => changeQ(-1);
     questionCard.querySelector('.btn-next').style.display = currentActivePos === activeIndices.length - 1 ? 'none' : 'inline-block';
@@ -1055,6 +1414,8 @@ function createQuiz(containerId, questions) {
     questionCard.querySelector('.btn-check').onclick = () => checkQuestion(idx);
     questionCard.querySelector('.btn-submit').style.display = currentActivePos === activeIndices.length - 1 ? 'inline-block' : 'none';
     questionCard.querySelector('.btn-submit').onclick = submitQuiz;
+    const editBtn = questionCard.querySelector('.q-edit-btn');
+    editBtn.onclick = () => openEditModal(lessonId, idx);
     list.appendChild(questionCard);
     renderQuestion(idx, questionCard);
     updateCounters();
@@ -1118,6 +1479,14 @@ function createQuiz(containerId, questions) {
     render();
   }
 
+  function resetToDefault() {
+    if (!confirm('Bạn có chắc muốn XÓA TẤT CẢ chỉnh sửa và khôi phục về bộ câu hỏi gốc?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    quizData = deepClone(DEFAULT_DATA);
+    alert('Đã khôi phục bộ câu hỏi gốc. Trang sẽ tải lại.');
+    location.reload();
+  }
+
   container.innerHTML = `
     <div class="status-bar">
       <span class="q-count">Câu: 1 / ${questions.length} (Bài gốc: Câu 1)</span>
@@ -1139,35 +1508,43 @@ function createQuiz(containerId, questions) {
         <span style="color:var(--danger);">Số câu sai: <span class="final-wrong">0</span></span>
       </div>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap;">
-        <button class="btn btn-retry btn-retry-wrong" onclick="window['q_${containerId}'].retryWrong()">Làm lại các câu sai</button>
-        <button class="btn btn-next" onclick="window['q_${containerId}'].resetQuiz()">Làm lại từ đầu</button>
+        <button class="btn btn-retry btn-retry-wrong">Làm lại các câu sai</button>
+        <button class="btn btn-next btn-reset-quiz">Làm lại từ đầu</button>
+        <button class="btn btn-reset" title="Xóa tất cả chỉnh sửa và khôi phục bộ câu hỏi gốc">🗑️ Reset về mặc định</button>
       </div>
     </div>
   `;
 
-  const api = { changeQ, checkQuestion, retryQuestion, submitQuiz, retryWrong, resetQuiz, render, updateCounters };
-  window[`q_${containerId}`] = api;
+  container.querySelector('.btn-retry-wrong').onclick = retryWrong;
+  container.querySelector('.btn-reset-quiz').onclick = resetQuiz;
+  container.querySelector('.btn-reset').onclick = resetToDefault;
+
+  // LƯU API THEO containerId để khớp với switchTab
+  window[`q_${containerId}`] = {
+    changeQ, checkQuestion, retryQuestion, submitQuiz, retryWrong, resetQuiz, render, updateCounters
+  };
   if (container.classList.contains('active')) render();
   else updateCounters();
-  return api;
 }
 
 /* ============================================================
    KHỞI TẠO 6 BÀI
    ============================================================ */
-createQuiz('quiz-b1', bai1);
-createQuiz('quiz-b2', bai2);
-createQuiz('quiz-b3', bai3);
-createQuiz('quiz-b4', bai4);
-createQuiz('quiz-b5', bai5);
-createQuiz('quiz-b6', bai6);
+createQuiz('quiz-b1', 'bai1');
+createQuiz('quiz-b2', 'bai2');
+createQuiz('quiz-b3', 'bai3');
+createQuiz('quiz-b4', 'bai4');
+createQuiz('quiz-b5', 'bai5');
+createQuiz('quiz-b6', 'bai6');
 
 function switchTab(tab, evt) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.quiz-container').forEach(c => c.classList.remove('active'));
   if (evt) evt.target.classList.add('active');
-  document.getElementById('quiz-' + tab).classList.add('active');
-  window[`q_quiz-${tab}`].render();
+  const container = document.getElementById('quiz-' + tab);
+  container.classList.add('active');
+  const api = window[`q_quiz-${tab}`];
+  if (api) api.render();
 }
 </script>
 </body>
