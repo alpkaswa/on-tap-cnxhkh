@@ -23,13 +23,25 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 18px; display: flex; justify-content: center; min-height: 100vh; }
     .container { width: 100%; max-width: 980px; min-width: 0; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.08); padding: 24px; }
+    
     header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 18px; margin-bottom: 20px; position: relative; }
     header h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 6px; font-weight: 700; }
     header p { color: #475569; font-size: 0.95rem; }
+    
+    /* CSS cho khung lượt truy cập */
+    .visit-counter {
+        position: absolute; top: 0; left: 0;
+        background: #eff6ff; border: 1px solid var(--primary-light);
+        color: var(--primary); padding: 6px 12px; border-radius: 8px;
+        font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+    }
+    .visit-counter span.num { color: var(--danger); font-size: 1rem; }
+
     .edit-toggle { position: absolute; top: 0; right: 0; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--edit); background: white; color: var(--edit); font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
     .edit-toggle:hover { background: var(--edit-bg); }
     .edit-toggle.active { background: var(--edit); color: white; }
     .edit-toggle.active:hover { background: #6d28d9; }
+    
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
     .tab-btn { padding: 10px 18px; border: 2px solid var(--border); background: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: #475569; transition: all 0.2s; }
     .tab-btn:hover { border-color: var(--primary-light); color: var(--primary); background: #f8fafc; }
@@ -55,17 +67,20 @@
     .option-item.correct { background-color: var(--success-bg) !important; border-color: var(--success) !important; color: #14532d; font-weight: 700; }
     .option-item.incorrect { background-color: var(--danger-bg) !important; border-color: var(--danger) !important; color: #7f1d1d; }
     .option-item.locked { cursor: default; }
+    
+    /* Fix bảng Đúng / Sai */
     .tf-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 12px; border-radius: 10px; overflow: hidden; }
-    .tf-table th, .tf-table td { border: 1px solid var(--border); padding: 12px; text-align: left; font-size: 0.95rem; overflow-wrap: anywhere; }
+    .tf-table th, .tf-table td { border: 1px solid var(--border); padding: 12px; text-align: left; font-size: 0.95rem; word-break: break-word; }
     .tf-table th { background: #f1f5f9; font-weight: 700; color: #334155; }
-    .tf-btn-group { display: flex; gap: 8px; justify-content: center; }
-    .tf-btn { padding: 7px 16px; border: 2px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: all 0.15s; }
+    .tf-btn-group { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
+    .tf-btn { padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: all 0.15s; white-space: nowrap; }
     .tf-btn:hover:not(:disabled) { border-color: var(--primary-light); }
     .tf-btn.selected-true { background: var(--primary-light); color: white; border-color: var(--primary-light); }
     .tf-btn.selected-false { background: #64748b; color: white; border-color: #64748b; }
     .tf-btn.correct-val { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
     .tf-btn.incorrect-val { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
     .tf-btn:disabled { cursor: default; opacity: 0.95; }
+    
     .match-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; min-width: 0; }
     .match-row { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; }
     .match-label { font-weight: 500; font-size: 0.95rem; line-height: 1.55; color: #1e293b; }
@@ -76,15 +91,18 @@
     .match-select.correct-match { border-color: var(--success); background-color: var(--success-bg); font-weight: 700; color: #14532d; }
     .match-select.incorrect-match { border-color: var(--danger); background-color: var(--danger-bg); color: #7f1d1d; }
     .match-correct-answer { margin-top: 6px; color: #14532d; font-size: 0.9rem; font-weight: 700; padding: 6px 10px; background: var(--success-bg); border-radius: 6px; display: inline-block; }
+    
     @media (max-width: 700px) {
       body { padding: 10px; }
       .container { padding: 16px; border-radius: 12px; }
       .option-item { padding: 11px 12px; font-size: 0.93rem; }
       .tf-table th, .tf-table td { padding: 9px; font-size: 0.89rem; }
-      .tf-btn { padding: 7px 12px; }
+      .tf-btn { padding: 7px 10px; font-size: 0.85rem; }
       .btn { padding: 10px 14px; }
       .match-select { padding: 10px; font-size: 0.92rem; }
-      .edit-toggle { position: static; margin-top: 10px; }
+      .edit-toggle { position: static; margin-top: 10px; display: inline-flex; }
+      .visit-counter { position: static; display: inline-flex; margin-top: 10px; margin-right: 10px; }
+      header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     }
     @media (max-width: 420px) {
       body { padding: 8px; }
@@ -97,7 +115,14 @@
       .match-label { font-size: 0.89rem; }
       .match-select { font-size: 0.88rem; padding: 9px; }
       .btn { padding: 9px 11px; font-size: 0.85rem; }
+      
+      /* Cứu cánh cho bảng Đ/S trên màn hình siêu nhỏ */
+      .tf-table th:last-child { width: 110px !important; }
+      .tf-table th, .tf-table td { padding: 6px; }
+      .tf-btn-group { gap: 4px; }
+      .tf-btn { padding: 6px 8px; font-size: 0.8rem; }
     }
+    
     .feedback-box { margin-top: 16px; padding: 14px 18px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; display: none; line-height: 1.6; }
     .feedback-box.correct-fb { background-color: var(--success-bg); color: #14532d; border: 2px solid var(--success); }
     .feedback-box.incorrect-fb { background-color: var(--danger-bg); color: #7f1d1d; border: 2px solid var(--danger); }
@@ -170,7 +195,10 @@
 
 <div class="container">
     <header>
-        <h1>📘 ÔN TẬP TRẮC NGHIỆM CNXHKH by Hoang Minh Nghia k23 </h1>
+        <div class="visit-counter">
+            👁️ Lượt truy cập: <span id="totalVisits" class="num">...</span>
+        </div>
+        <h1>📘 ÔN TẬP TRẮC NGHIỆM CNXHKH</h1>
         <p><b>Trọn bộ 6 bài</b> — Làm từng câu, kiểm tra ngay, làm lại câu sai</p>
         <button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">
             ✏️ <span>Bật chế độ Sửa</span>
@@ -211,6 +239,29 @@
 <div class="saved-toast" id="savedToast">✅ Đã lưu thành công</div>
 
 <script>
+/* ============================================================
+   ĐẾM LƯỢT TRUY CẬP THEO IP
+   ============================================================ */
+async function initVisitCounter() {
+    const el = document.getElementById('totalVisits');
+    if (!el) return;
+    try {
+        // Sử dụng API của abacus để đếm lượt truy cập theo IP (mỗi IP tính 1 lượt trong 1 phút)
+        // Bạn có thể đổi "hoangminhnghia" hoặc "cnxhkh" thành từ khoá riêng của bạn để không bị trùng với người khác
+        const res = await fetch('https://abacus.jasoncameron.dev/hit/hoangminhnghia/cnxhkh-baitap');
+        const data = await res.json();
+        if (data && data.value !== undefined) {
+            el.innerText = data.value.toLocaleString('vi-VN');
+        } else {
+            el.innerText = '0';
+        }
+    } catch (e) {
+        console.warn('Không kết nối được server đếm truy cập:', e);
+        el.innerText = 'N/A';
+    }
+}
+initVisitCounter();
+
 /* ============================================================
    DEFAULT DATA
    ============================================================ */
@@ -1519,7 +1570,6 @@ function createQuiz(containerId, lessonId) {
   container.querySelector('.btn-reset-quiz').onclick = resetQuiz;
   container.querySelector('.btn-reset').onclick = resetToDefault;
 
-  // LƯU API THEO containerId để khớp với switchTab
   window[`q_${containerId}`] = {
     changeQ, checkQuestion, retryQuestion, submitQuiz, retryWrong, resetQuiz, render, updateCounters
   };
